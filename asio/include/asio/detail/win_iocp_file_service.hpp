@@ -103,6 +103,10 @@ public:
       const char* path, file_base::flags open_flags,
       asio::error_code& ec);
 
+  ASIO_DECL asio::error_code open(implementation_type& impl,
+      const wchar_t* path, file_base::flags open_flags,
+      asio::error_code& ec);
+
   // Assign a native handle to a file implementation.
   asio::error_code assign(implementation_type& impl,
       const native_handle_type& native_handle,

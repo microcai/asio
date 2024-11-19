@@ -78,6 +78,9 @@ public:
   // Open the serial port using the specified device name.
   ASIO_DECL asio::error_code open(implementation_type& impl,
       const std::string& device, asio::error_code& ec);
+  // Open the serial port using the specified device name.
+  ASIO_DECL asio::error_code open(implementation_type& impl,
+      const std::wstring& device, asio::error_code& ec);
 
   // Assign a native handle to a serial port implementation.
   asio::error_code assign(implementation_type& impl,

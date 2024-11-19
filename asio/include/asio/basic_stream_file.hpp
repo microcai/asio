@@ -147,6 +147,33 @@ public:
   /**
    * This constructor initialises and opens a file.
    *
+   * @param ex The I/O executor that the file will use, by default, to
+   * dispatch handlers for any asynchronous operations performed on the file.
+   *
+   * @param path The path name identifying the file to be opened.
+   *
+   * @param open_flags A set of flags that determine how the file should be
+   * opened.
+   *
+   * @throws asio::system_error Thrown on failure.
+   */
+  basic_stream_file(const executor_type& ex,
+      const wchar_t* path, file_base::flags open_flags)
+    : basic_file<Executor>(ex)
+  {
+    asio::error_code ec;
+    this->impl_.get_service().set_is_stream(
+        this->impl_.get_implementation(), true);
+    this->impl_.get_service().open(
+        this->impl_.get_implementation(),
+        path, open_flags, ec);
+    asio::detail::throw_error(ec, "open");
+  }
+
+  /// Construct and open a basic_stream_file.
+  /**
+   * This constructor initialises and opens a file.
+   *
    * @param context An execution context which provides the I/O executor that
    * the file will use, by default, to dispatch handlers for any asynchronous
    * operations performed on the file.
@@ -161,6 +188,39 @@ public:
   template <typename ExecutionContext>
   basic_stream_file(ExecutionContext& context,
       const char* path, file_base::flags open_flags,
+      constraint_t<
+        is_convertible<ExecutionContext&, execution_context&>::value,
+        defaulted_constraint
+      > = defaulted_constraint())
+    : basic_file<Executor>(context)
+  {
+    asio::error_code ec;
+    this->impl_.get_service().set_is_stream(
+        this->impl_.get_implementation(), true);
+    this->impl_.get_service().open(
+        this->impl_.get_implementation(),
+        path, open_flags, ec);
+    asio::detail::throw_error(ec, "open");
+  }
+
+  /// Construct and open a basic_stream_file.
+  /**
+   * This constructor initialises and opens a file.
+   *
+   * @param context An execution context which provides the I/O executor that
+   * the file will use, by default, to dispatch handlers for any asynchronous
+   * operations performed on the file.
+   *
+   * @param path The path name identifying the file to be opened.
+   *
+   * @param open_flags A set of flags that determine how the file should be
+   * opened.
+   *
+   * @throws asio::system_error Thrown on failure.
+   */
+  template <typename ExecutionContext>
+  basic_stream_file(ExecutionContext& context,
+      const wchar_t* path, file_base::flags open_flags,
       constraint_t<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint
@@ -207,6 +267,33 @@ public:
   /**
    * This constructor initialises and opens a file.
    *
+   * @param ex The I/O executor that the file will use, by default, to
+   * dispatch handlers for any asynchronous operations performed on the file.
+   *
+   * @param path The path name identifying the file to be opened.
+   *
+   * @param open_flags A set of flags that determine how the file should be
+   * opened.
+   *
+   * @throws asio::system_error Thrown on failure.
+   */
+  basic_stream_file(const executor_type& ex,
+      const std::wstring& path, file_base::flags open_flags)
+    : basic_file<Executor>(ex)
+  {
+    asio::error_code ec;
+    this->impl_.get_service().set_is_stream(
+        this->impl_.get_implementation(), true);
+    this->impl_.get_service().open(
+        this->impl_.get_implementation(),
+        path.c_str(), open_flags, ec);
+    asio::detail::throw_error(ec, "open");
+  }
+
+  /// Construct and open a basic_stream_file.
+  /**
+   * This constructor initialises and opens a file.
+   *
    * @param context An execution context which provides the I/O executor that
    * the file will use, by default, to dispatch handlers for any asynchronous
    * operations performed on the file.
@@ -221,6 +308,39 @@ public:
   template <typename ExecutionContext>
   basic_stream_file(ExecutionContext& context,
       const std::string& path, file_base::flags open_flags,
+      constraint_t<
+        is_convertible<ExecutionContext&, execution_context&>::value,
+        defaulted_constraint
+      > = defaulted_constraint())
+    : basic_file<Executor>(context)
+  {
+    asio::error_code ec;
+    this->impl_.get_service().set_is_stream(
+        this->impl_.get_implementation(), true);
+    this->impl_.get_service().open(
+        this->impl_.get_implementation(),
+        path.c_str(), open_flags, ec);
+    asio::detail::throw_error(ec, "open");
+  }
+
+  /// Construct and open a basic_stream_file.
+  /**
+   * This constructor initialises and opens a file.
+   *
+   * @param context An execution context which provides the I/O executor that
+   * the file will use, by default, to dispatch handlers for any asynchronous
+   * operations performed on the file.
+   *
+   * @param path The path name identifying the file to be opened.
+   *
+   * @param open_flags A set of flags that determine how the file should be
+   * opened.
+   *
+   * @throws asio::system_error Thrown on failure.
+   */
+  template <typename ExecutionContext>
+  basic_stream_file(ExecutionContext& context,
+      const std::wstring& path, file_base::flags open_flags,
       constraint_t<
         is_convertible<ExecutionContext&, execution_context&>::value,
         defaulted_constraint

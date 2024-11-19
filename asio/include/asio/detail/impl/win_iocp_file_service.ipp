@@ -148,6 +148,106 @@ asio::error_code win_iocp_file_service::open(
   }
 }
 
+asio::error_code win_iocp_file_service::open(
+    win_iocp_file_service::implementation_type& impl,
+    const wchar_t* path, file_base::flags open_flags,
+    asio::error_code& ec)
+{
+  if (is_open(impl))
+  {
+    ec = asio::error::already_open;
+    ASIO_ERROR_LOCATION(ec);
+    return ec;
+  }
+
+  DWORD access = 0;
+  if ((open_flags & file_base::read_only) != 0)
+    access = GENERIC_READ;
+  else if ((open_flags & file_base::write_only) != 0)
+    access = GENERIC_WRITE;
+  else if ((open_flags & file_base::read_write) != 0)
+    access = GENERIC_READ | GENERIC_WRITE;
+
+  DWORD share = FILE_SHARE_READ | FILE_SHARE_WRITE;
+
+  DWORD disposition = 0;
+  if ((open_flags & file_base::create) != 0)
+  {
+    if ((open_flags & file_base::exclusive) != 0)
+      disposition = CREATE_NEW;
+    else
+      disposition = OPEN_ALWAYS;
+  }
+  else
+  {
+    if ((open_flags & file_base::truncate) != 0)
+      disposition = TRUNCATE_EXISTING;
+    else
+      disposition = OPEN_EXISTING;
+  }
+
+  DWORD flags = FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED;
+  if (impl.is_stream_)
+    flags |= FILE_FLAG_SEQUENTIAL_SCAN;
+  else
+    flags |= FILE_FLAG_RANDOM_ACCESS;
+  if ((open_flags & file_base::sync_all_on_write) != 0)
+    flags |= FILE_FLAG_WRITE_THROUGH;
+
+  impl.offset_ = 0;
+  HANDLE handle = ::CreateFileW(path, access, share, 0, disposition, flags, 0);
+  if (handle != INVALID_HANDLE_VALUE)
+  {
+    if (disposition == OPEN_ALWAYS)
+    {
+      if ((open_flags & file_base::truncate) != 0)
+      {
+        if (!::SetEndOfFile(handle))
+        {
+          DWORD last_error = ::GetLastError();
+          ::CloseHandle(handle);
+          ec.assign(last_error, asio::error::get_system_category());
+          ASIO_ERROR_LOCATION(ec);
+          return ec;
+        }
+      }
+    }
+    if (disposition == OPEN_ALWAYS || disposition == OPEN_EXISTING)
+    {
+      if ((open_flags & file_base::append) != 0)
+      {
+        LARGE_INTEGER distance, new_offset;
+        distance.QuadPart = 0;
+        if (::SetFilePointerEx(handle, distance, &new_offset, FILE_END))
+        {
+          impl.offset_ = static_cast<uint64_t>(new_offset.QuadPart);
+        }
+        else
+        {
+          DWORD last_error = ::GetLastError();
+          ::CloseHandle(handle);
+          ec.assign(last_error, asio::error::get_system_category());
+          ASIO_ERROR_LOCATION(ec);
+          return ec;
+        }
+      }
+    }
+
+    handle_service_.assign(impl, handle, ec);
+    if (ec)
+      ::CloseHandle(handle);
+    ASIO_ERROR_LOCATION(ec);
+    return ec;
+  }
+  else
+  {
+    DWORD last_error = ::GetLastError();
+    ec.assign(last_error, asio::error::get_system_category());
+    ASIO_ERROR_LOCATION(ec);
+    return ec;
+  }
+}
+
 uint64_t win_iocp_file_service::size(
     const win_iocp_file_service::implementation_type& impl,
     asio::error_code& ec) const
